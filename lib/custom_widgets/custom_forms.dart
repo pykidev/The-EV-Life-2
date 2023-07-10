@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:the_ev_life/custom_widgets/custom_form_widget.dart';
-
+import 'package:the_ev_life/firebase_utils/auth.dart';
+import 'package:the_ev_life/pages/home.dart';
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
 
@@ -11,10 +13,22 @@ class LoginForm extends StatefulWidget {
 
 class _LoginState extends State<LoginForm> {
   
+  AuthService _authService = AuthService();
+
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController pwdCtrl = TextEditingController();  
   final _formKey = GlobalKey<FormState>();
 
+  void signInUser(String email, String password) async {
+    UserCredential? userCredential = await _authService.signInUser(email, password);
+    if(userCredential != null){
+      //Authentication successful
+      print('User successfully logged in');
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Home()));
+    }
+  }
+  
+  // void sin
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -63,6 +77,7 @@ class _LoginState extends State<LoginForm> {
                                 onPressed: () {
                                   if(_formKey.currentState!.validate()){
                                     print('Validated inputs');
+                                    signInUser(emailCtrl.text, pwdCtrl.text);
                                   }
                                 }, 
                                 child: const Text(
@@ -119,11 +134,24 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
+  AuthService _authService = AuthService();
 
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController pwdCtrl = TextEditingController();  
   final TextEditingController confirmPwdCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  void registerUser(String email, String password) async {
+    UserCredential? userCredential = await _authService.registerUser(email,password);
+    if(userCredential != null){
+      //successful registration
+      print('User successfully registered');
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: ((context) => LoginForm())));
+    } else {
+      //Registration failed
+      print('Registration unsuccessful');
+    }
+  }
 
   @override
   Widget build(BuildContext context){
@@ -176,8 +204,9 @@ class _RegisterFormState extends State<RegisterForm> {
                               child: TextButton(
                                 onPressed: () {
                                   if(_formKey.currentState!.validate()){
-                                    // print('Validated inputs');
-                                    Navigator.pop(context);
+                                    // print('Validated inputs')
+                                    registerUser(emailCtrl.text, pwdCtrl.text);
+                                    // Navigator.pop(context);
                                   }
                                 }, 
                                 child: const Text(

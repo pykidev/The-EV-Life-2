@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "901639115352",
+    "project_id": "ev-life-db",
+    "storage_bucket": "ev-life-db.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901639115352:android:17fecf90d68fe1fb77b02d",
+        "android_client_info": {
+          "package_name": "com.example.the_ev_life"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901639115352-9uult6ua4m50os7hkvshkuuraa6rsbos.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCbSPDFEn-E3D9HQtv0XgGT6se7tEkloO8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901639115352-9uult6ua4m50os7hkvshkuuraa6rsbos.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "901639115352-7m98c3hmg96qkqmlk9ku770kjmblpbef.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.theEvLife.RunnerTests"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

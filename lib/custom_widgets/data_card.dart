@@ -62,11 +62,13 @@ class _DataCardState extends State<DataCard>{
   @override
   Widget build(BuildContext context){
     return Card(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
       child: Padding(
         padding: EdgeInsets.all(8.0),
         child: Column(
           children: <Widget>[
-            Text( widget.isBattery ? 'Battery' : 'Battery Temperature'),
+            Text( widget.isBattery ? 'Battery' : 'Battery Temperature', style: TextStyle(fontSize: 25.0, color: Colors.grey[900]),),
+            Divider(height: 20.0, color: Colors.grey[450], thickness: 2.0),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.center,
@@ -79,7 +81,7 @@ class _DataCardState extends State<DataCard>{
                 Container(
                   width: 20.0,
                 ),
-                Text('$data' + (widget.isBattery ? '%':'\u2103')),
+                Text('$data' + (widget.isBattery ? '%':'\u2103'), style: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold, color: Colors.grey[900])),
               ],
             )
           ],
