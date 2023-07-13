@@ -18,15 +18,37 @@ class DataCard extends StatefulWidget {
 class _DataCardState extends State<DataCard>{
   
   bool isRequestResolved = false;
-  
-  Color iconColor = Colors.blue;
+  late Future<dynamic> cardData = getCardData();
+  // Color iconColor = Colors.blue;
 
-  // Stream<dynamic> dataStream() async* {
-  //   while(true){
-  //     yield await getData(getCardData() as String);
-  //     await Future.delayed(const Duration(seconds: 5));
-  //   }
-  // }
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void dispose(){
+    _stopTimer();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer = Timer.periodic(Duration(seconds: 5), (_) {
+      setState(() {
+        final data = getCardData();
+        cardData = data;
+        // cardData = getCardData();
+      });
+    });
+  }
+
+  void _stopTimer() {
+    _timer?.cancel();
+    _timer = null;
+  }
 
   Future<dynamic> getCardData() async {
     User? user = AuthService().firebaseAuth.currentUser;
@@ -57,11 +79,9 @@ class _DataCardState extends State<DataCard>{
   @override
   Widget build(BuildContext context){
     return FutureBuilder(
-            future: getCardData(),
+            future: cardData,
             builder: (context, snapshotFuture) {
-              if(snapshotFuture.connectionState == ConnectionState.waiting){
-                return const Center(child: CircularProgressIndicator());
-              } else if(snapshotFuture.hasData){
+              if(snapshotFuture.hasData){
                 final data = snapshotFuture.data!;
                 return Card(
                   shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
@@ -77,7 +97,14 @@ class _DataCardState extends State<DataCard>{
                           children: <Widget>[
                             Icon(
                               widget.isBattery ? Icons.battery_5_bar_outlined : Icons.thermostat_outlined, 
-                              color: iconColor,
+                              color: 
+                              widget.isBattery ? 
+                              (data['Battery'] >= 65 ? 
+                              Colors.green : data['Battery'] >= 45 ?
+                              Colors.orange :Colors.red) : 
+                              (data['Temperature'] <= 27 ?
+                               Colors.green : data['Temperature'] <= 35 ?
+                               Colors.orange :Colors.red),
                               size: 150.0,
                             ),
                             Container(
@@ -90,6 +117,8 @@ class _DataCardState extends State<DataCard>{
                     ),
                   ),
                 );
+              } else if(snapshotFuture.connectionState == ConnectionState.waiting){
+                return const Center(child: CircularProgressIndicator());
               } else {
                 // print("SnapshotFuture");
                 // print(snapshotFuture.data);
