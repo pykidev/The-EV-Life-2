@@ -1,7 +1,12 @@
+// ignore_for_file: prefer_interpolation_to_compose_strings, avoid_print
+
 import 'dart:convert';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:the_ev_life/firebase_utils/auth.dart';
+import 'package:the_ev_life/firebase_utils/firestore_service.dart';
 
 class DataCard extends StatefulWidget {
   DataCard(this.isBattery);
@@ -13,80 +18,85 @@ class DataCard extends StatefulWidget {
 class _DataCardState extends State<DataCard>{
   
   bool isRequestResolved = false;
-  double data = 0.0;
-  // Color iconColorBattery = Colors.green;
+  
   Color iconColor = Colors.blue;
-  Timer? _timer;
 
-  @override
-  void initState() {
-    super.initState();
-    _startTimer();
-  }
+  // Stream<dynamic> dataStream() async* {
+  //   while(true){
+  //     yield await getData(getCardData() as String);
+  //     await Future.delayed(const Duration(seconds: 5));
+  //   }
+  // }
 
-  @override
-  void dispose(){
-    _stopTimer();
-    super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(Duration(seconds: 5), (_) {
-      getCardData('http://api.weatherapi.com/v1/current.json?q=London&aqi=no&key=', '51c2bf8d80a941b1a81173409232706');
-    });
-  }
-
-  void _stopTimer() {
-    _timer?.cancel();
-    _timer = null;
-  }
-
-  Future<void> getCardData(String url, String apikey) async {
-
-    final response = await http.get(Uri.parse(url + apikey));
-    if(response.statusCode == 200){
-      final jsonData = jsonDecode(response.body);
-      setState(() {
-        if(widget.isBattery){
-          data = jsonData['current']['temp_c'].toDouble();
-          iconColor =  data >= 75 ? Colors.green: data >= 45 ? Colors.orange : Colors.red;
-        } else {
-          data = jsonData['current']['temp_c'].toDouble();
-          iconColor =  data <= 25 ? Colors.blue: data <= 45 ? Colors.orange : Colors.red;
-        }
-      });
+  Future<dynamic> getCardData() async {
+    User? user = AuthService().firebaseAuth.currentUser;
+    if(user != null){
+      print(user.uid);
+      var apiUrl = await FirestoreService().readUserDoc(user.uid);
+      print(apiUrl['state_data_api']);
+      var data = await getData(apiUrl['state_data_api']);
+      return data;
+      // return apiUrl['state_data_api'] as String;
+    } else {
+      return null;
     }
   }
 
-  
+  Future<dynamic> getData(String url) async {
+    print(url);
+    var data = await http.get(Uri.parse(url));
+    print(jsonDecode(data.body));
+    if(data.statusCode == 200){
+      return jsonDecode(data.body);
+    }
+    return jsonDecode(data.body);
+  }
+
+  // final myDataStream = dataStream();
+
   @override
   Widget build(BuildContext context){
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
-      child: Padding(
-        padding: EdgeInsets.all(8.0),
-        child: Column(
-          children: <Widget>[
-            Text( widget.isBattery ? 'Battery' : 'Battery Temperature', style: TextStyle(fontSize: 25.0, color: Colors.grey[900]),),
-            Divider(height: 20.0, color: Colors.grey[450], thickness: 2.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Icon(
-                  widget.isBattery ? Icons.battery_5_bar_outlined : Icons.thermostat_outlined, 
-                  color: iconColor,
-                  size: 150.0,
-                ),
-                Container(
-                  width: 20.0,
-                ),
-                Text('$data' + (widget.isBattery ? '%':'\u2103'), style: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold, color: Colors.grey[900])),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
+    return FutureBuilder(
+            future: getCardData(),
+            builder: (context, snapshotFuture) {
+              if(snapshotFuture.connectionState == ConnectionState.waiting){
+                return const Center(child: CircularProgressIndicator());
+              } else if(snapshotFuture.hasData){
+                final data = snapshotFuture.data!;
+                return Card(
+                  shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20.0))),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      children: <Widget>[
+                        Text( widget.isBattery ? 'Battery' : 'Battery Temperature', style: TextStyle(fontSize: 25.0, color: Colors.grey[900]),),
+                        Divider(height: 20.0, color: Colors.grey[450], thickness: 2.0),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(
+                              widget.isBattery ? Icons.battery_5_bar_outlined : Icons.thermostat_outlined, 
+                              color: iconColor,
+                              size: 150.0,
+                            ),
+                            Container(
+                              width: 20.0,
+                            ),
+                            Text('${widget.isBattery ? data['Battery'] : data['Temperature']}' + (widget.isBattery ? '%':'\u2103'), style: TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold, color: Colors.grey[900])),
+                          ],
+                        )
+                      ],
+                    ),
+                  ),
+                );
+              } else {
+                // print("SnapshotFuture");
+                // print(snapshotFuture.data);
+                return const Text("Error occured");
+              }
+            }
+          );}
+        }
+
+

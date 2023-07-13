@@ -17,7 +17,7 @@ class _HomeState extends State<Home> {
 
   void signOut() async {
     await _authService.signOutUser();
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginForm()));
+    // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => LoginForm()));
   }
 
   @override

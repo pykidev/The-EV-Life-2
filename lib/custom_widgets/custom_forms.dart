@@ -2,7 +2,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:the_ev_life/custom_widgets/custom_form_widget.dart';
 import 'package:the_ev_life/firebase_utils/auth.dart';
-import 'package:the_ev_life/pages/home.dart';
+// import 'package:the_ev_life/pages/home.dart';
+
+// import '../firebase_utils/firestore_service.dart';
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
 
@@ -13,21 +15,28 @@ class LoginForm extends StatefulWidget {
 
 class _LoginState extends State<LoginForm> {
   
-  AuthService _authService = AuthService();
+  final AuthService _authService = AuthService();
 
   final TextEditingController emailCtrl = TextEditingController();
   final TextEditingController pwdCtrl = TextEditingController();  
   final _formKey = GlobalKey<FormState>();
+  String? errorMessage = '';
 
-  void signInUser(String email, String password) async {
-    UserCredential? userCredential = await _authService.signInUser(email, password);
-    if(userCredential != null){
-      //Authentication successful
-      print('User successfully logged in');
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Home()));
+  Future<void> signInUser() async {
+    try {
+      await _authService.signInUser(emailCtrl.text, pwdCtrl.text);
+    }
+    on FirebaseAuthException catch(e) {
+      setState((){
+        errorMessage = e.message;
+      });
     }
   }
   
+  Widget _errorMessage(){
+    return Text(errorMessage == '' ? '': '$errorMessage');
+  }
+
   // void sin
   @override
   Widget build(BuildContext context){
@@ -74,10 +83,10 @@ class _LoginState extends State<LoginForm> {
                                 borderRadius: BorderRadius.all(Radius.circular(5.0)),
                               ),
                               child: TextButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   if(_formKey.currentState!.validate()){
-                                    print('Validated inputs');
-                                    signInUser(emailCtrl.text, pwdCtrl.text);
+                                    // print('Validated inputs');
+                                    await signInUser();
                                   }
                                 }, 
                                 child: const Text(
@@ -109,7 +118,8 @@ class _LoginState extends State<LoginForm> {
                                   decoration: TextDecoration.underline
                                 ),
                               ),
-                            )
+                            ),
+                            _errorMessage(),
                           ],
                         ),
                       )
@@ -140,17 +150,20 @@ class _RegisterFormState extends State<RegisterForm> {
   final TextEditingController pwdCtrl = TextEditingController();  
   final TextEditingController confirmPwdCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  String? errorMessage = '';
 
-  void registerUser(String email, String password) async {
-    UserCredential? userCredential = await _authService.registerUser(email,password);
-    if(userCredential != null){
-      //successful registration
-      print('User successfully registered');
-      Navigator.pushReplacement(context, MaterialPageRoute(builder: ((context) => LoginForm())));
-    } else {
-      //Registration failed
-      print('Registration unsuccessful');
+  Future<void> registerUser(String email, String password) async {
+    try{
+      await _authService.registerUser(email,password);
+    } on FirebaseAuthException catch(e) {
+      setState((){
+        errorMessage = e.message;
+      });
     }
+  }
+
+  Widget _errorMessage(){
+    return Text(errorMessage == '' ? '': '$errorMessage');
   }
 
   @override
@@ -202,10 +215,10 @@ class _RegisterFormState extends State<RegisterForm> {
                                 borderRadius: BorderRadius.all(Radius.circular(5.0)),
                               ),
                               child: TextButton(
-                                onPressed: () {
+                                onPressed: () async {
                                   if(_formKey.currentState!.validate()){
                                     // print('Validated inputs')
-                                    registerUser(emailCtrl.text, pwdCtrl.text);
+                                    await registerUser(emailCtrl.text, pwdCtrl.text);
                                     // Navigator.pop(context);
                                   }
                                 }, 
@@ -233,7 +246,8 @@ class _RegisterFormState extends State<RegisterForm> {
                                   decoration: TextDecoration.underline
                                 ),
                               ),
-                            )
+                            ),
+                            _errorMessage(),
                           ],
                         ),
                       )
